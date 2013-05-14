@@ -1,10 +1,6 @@
-var /*express = require('express'),
-    routes = require('routes'),
-    dgram = require('net'),*/
-    twitter = require('ntwitter'),
-    twitterModule = require('./modules/twitter_module.js'),
-    util = require('util'),
+var twitterModule = require('./modules/twitter_module.js'),
     net = require('net');
+
 var PORT = 33333;
 var HOST = '0.0.0.0';
 var filters =
@@ -13,31 +9,57 @@ var filters =
         '#3dprinting', '#relab',
         '#liege', '#sad',
         '#processing', '#lasercutting',
-        'fabjamliege', '#sex'
+        'fabjamliege'
     ];
 var params = {};
-params.pins = [
+var pins = [
     {hashtag:'happy', pin: 1},{hashtag:'fablab', pin: 2},{hashtag:'3dprinting', pin : 3},
     {hashtag:'relab', pin:4},{hashtag:'liege', pin: 5},{hashtag:'sad', pin: 6},
     {hashtag:'processing', pin : 7},{hashtag:'lasercutting', pin : 8},{hashtag:'fabjamliege', pin :9},
-    {hashtag: 'sex', pin: 10}
 ];
 
-
+params.pins = pins;
 
 // var server = dgram.createSocket('udp4');
 
-var server = net.createServer(function(c){
-    console.log('client connected');
-    c.on('end', function(){
-       console.log('client disconnected');
-    });
-    var twit = twitterModule.twit;
 
-    twit.stream('statuses/filter',{'track': filters}, function(stream){twitterModule.consumeStream(stream, c, params)});
-});
+
+var subscribers = [];
+var twit = twitterModule.twit;
+
+var onConnect = function(connex){
+    console.log('on connect function');
+    connex.on('listen', function(){
+        console.log('listening on '+PORT);
+
+    });
+    connex.on('connect', function(){
+        console.log('client connected');
+        twitterModule.addSubscriber(connex);
+        connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
+        connex.write("The hashtags actually filtered are  : "+"\r\n");
+        for(var i = 0; i < filters.length; i++){
+            connex.write("\t"+filters[i]+"\r\n");
+        }
+        connex.write("\r\n");
+        console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
+
+    });
+    connex.on('end', function(){
+        twitterModule.removeSubscriber(connex);
+        connex.end();
+        console.log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
+    });
+
+
+
+}
+
+
+var server = net.createServer(onConnect);
 server.listen(PORT, function(){
-   console.log('server created');
+    console.log('server created');
+    twit.stream('statuses/filter',{'track': filters}, function(str){twitterModule.consumeStream(str, params)});
 });
 server.on('error', function(e){
     switch(e.code){
@@ -52,7 +74,7 @@ server.on('error', function(e){
         case 'EHOSTUNREACH':{
             console.log("Restarting server");
             setTimeout(function(){
-               server.close();
+                server.close();
                 server.listen(PORT);
             }, 1000);
             break;
@@ -60,7 +82,7 @@ server.on('error', function(e){
         case 'ECONNRESET':{
             console.log('Restarting server');
             setTimeout(function(){
-               server.close();
+                server.close();
                 server.listen(PORT);
             }, 1000);
             break;
@@ -71,4 +93,4 @@ server.on('error', function(e){
     }
 });
 
-server.maxConnections = 7000;
+// server.maxConnections = 7000;
