@@ -39,4 +39,11 @@ module.exports.consumeStream =  function(stream, socket, params){
 
         }
     });
+
+    stream.on('error', function(e){
+       console.log('errror '+ e);
+       socket.write('an error occured');
+       socket.pipe(socket);
+
+    });
 };

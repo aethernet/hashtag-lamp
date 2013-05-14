@@ -1,11 +1,10 @@
 var /*express = require('express'),
     routes = require('routes'),
     dgram = require('net'),*/
-    twitter = require('./node_modules/ntwitter/lib/twitter.js'),
+    twitter = require('ntwitter'),
     twitterModule = require('./modules/twitter_module.js'),
     util = require('util'),
     net = require('net');
-
 var PORT = 33333;
 var HOST = '0.0.0.0';
 var filters =
@@ -17,14 +16,14 @@ var filters =
         'fabjamliege', '#sex'
     ];
 var params = {};
-var pins = [
+params.pins = [
     {hashtag:'happy', pin: 1},{hashtag:'fablab', pin: 2},{hashtag:'3dprinting', pin : 3},
     {hashtag:'relab', pin:4},{hashtag:'liege', pin: 5},{hashtag:'sad', pin: 6},
     {hashtag:'processing', pin : 7},{hashtag:'lasercutting', pin : 8},{hashtag:'fabjamliege', pin :9},
     {hashtag: 'sex', pin: 10}
 ];
 
-params.pins = pins;
+
 
 // var server = dgram.createSocket('udp4');
 
