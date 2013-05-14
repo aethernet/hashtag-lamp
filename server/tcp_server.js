@@ -30,7 +30,6 @@ var twit = twitterModule.twit;
 var onConnect = function(connex){
     connex.on('listen', function(){
         console.log('listening on '+PORT);
-
     });
     connex.on('connect', function(){
         console.log('client connected');
@@ -40,7 +39,7 @@ var onConnect = function(connex){
         for(var i = 0; i < filters.length; i++){
             connex.write("\t"+filters[i]+"\r\n");
         }
-        connex.write("\r\n");
+        connex.pipe(connex);
         console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
 
     });
