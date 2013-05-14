@@ -28,7 +28,6 @@ var subscribers = [];
 var twit = twitterModule.twit;
 
 var onConnect = function(connex){
-    console.log('on connect function');
     connex.on('listen', function(){
         console.log('listening on '+PORT);
 
