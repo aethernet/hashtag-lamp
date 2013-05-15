@@ -28,10 +28,10 @@ var subscribers = [];
 var twit = twitterModule.twit;
 
 var onConnect = function(connex){
-    connex.on('listen', function(){
+    connex.on('listening', function(){
         console.log('listening on '+PORT);
     });
-    connex.on('connect', function(){
+    connex.on('connection', function(){
         console.log('client connected');
         twitterModule.addSubscriber(connex);
         connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
@@ -43,22 +43,44 @@ var onConnect = function(connex){
         console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
 
     });
-    connex.on('end', function(){
-        twitterModule.removeSubscriber(connex);
-        connex.end();
-        console.log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
+
+    connex.on('data', function(data){
+       console.log('data received '+data);
     });
 
-
+    connex.on('end', function(){
+        twitterModule.removeSubscriber(connex);
+    });
 
 }
-
 
 var server = net.createServer(onConnect);
 server.listen(PORT, function(){
     console.log('server created');
     twit.stream('statuses/filter',{'track': filters}, function(str){twitterModule.consumeStream(str, params)});
 });
+
+server.on('connection', function(connex){
+
+    console.log('client connected');
+    twitterModule.addSubscriber(connex);
+    connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
+    connex.write("The hashtags actually filtered are  : "+"\r\n");
+    for(var i = 0; i < filters.length; i++){
+        connex.write("\t"+filters[i]+"\r\n");
+    }
+    connex.pipe(connex);
+    console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
+
+    /*
+    connex.on('end', function(){
+        twitterModule.removeSubscriber(connex);
+        connex.end();
+        console.log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
+    });
+    */
+});
+
 server.on('error', function(e){
     switch(e.code){
         case 'EADDRINUSE':{
