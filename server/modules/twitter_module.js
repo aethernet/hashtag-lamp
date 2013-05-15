@@ -43,26 +43,29 @@ module.exports.consumeStream =  function(stream, params){
                         }
                     }
                     if(pin > 0){
-                        console.log('sending '+data.text);
+                       // console.log('sending '+data.text);
                         for(var k = 0; k < subscribers.length; k++){
                             subscribers[k].write(pin+'|'+data.text.length+'<');
-                            subscribers[k].pipe(subscribers[i]);
+                            //commented because  of errors.
+                            // TODO find out what happened here
+                            //subscribers[k].pipe(subscribers[i]);
                         }
-
                     }
                 }
 
             }catch(err){
                 console.log("error "+err );
             }
-
         }
     });
 
     stream.on('error', function(e){
-        console.log('errror '+ e);
+        console.log('error '+ e);
         socket.write('an error occured');
         socket.pipe(socket);
 
+    });
+    stream.on('end', function(){
+       console.log('Twitter stream API connection ended');
     });
 };
