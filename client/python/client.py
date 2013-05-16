@@ -1,6 +1,8 @@
+# The tcp client which will be used by raspberry pi to turn light bulbs on
 __author__ = 'Greg Berger'
 
 import socket
+import gpioProcess
 
 IP = "188.165.193.200"
 PORT = 33333
@@ -13,7 +15,7 @@ s.connect((IP,PORT))
 print "Connected"
 while True:
     data = s.recv(BUFFER_SIZE)
-    print "Recieved data ", data
+    gpioProcess.processReceivedData(data)
 
 s.close()
 
