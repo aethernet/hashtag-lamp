@@ -32,6 +32,7 @@ module.exports.consumeStream =  function(stream, params){
             try{
                 //console.log("sending tweet "+data.text);
                 var htlength = data.entities.hashtags.length;
+                var tweetLength  = String('0000'+data.text.length).slice(-3);
                 for(var i = 0; i< htlength; i++){
                     var pin = 0;
                     var ht = data.entities.hashtags[i].text;
@@ -45,7 +46,8 @@ module.exports.consumeStream =  function(stream, params){
                     if(pin > 0){
                        // console.log('sending '+data.text);
                         for(var k = 0; k < subscribers.length; k++){
-                            subscribers[k].write(pin+'|'+data.text.length+'<');
+
+                            subscribers[k].write(pin+'|'+tweetLength+'<');
                             //commented because  of errors.
                             // TODO find out what happened here
                             //subscribers[k].pipe(subscribers[i]);

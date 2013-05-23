@@ -9,6 +9,16 @@
  
  */
 
+/*
+    TODOS
+    - Create an array with the pin numbers ordered (ex: [8,5,3] the pin number returned by server will be the index in the array)
+    - Create timer for pin High duration (the delay stops the loop)
+    - every n loops, test the connection + reconnect in case not connected anymore
+    - implement server handshake [ based upon an actuator]
+    - implement flashing led in case of error
+
+*/
+
 #include <SPI.h>
 #include <Ethernet.h>
 
