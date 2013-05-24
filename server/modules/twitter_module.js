@@ -7,7 +7,7 @@ var subscribers  = [];
 
 function log(text){
     var logDate = new Date().toString().replace(/G.*/,'').replace(/[a-zA-Z]*\ /,'');
-    console.log(logDate+'-'+text);
+    console.log(logDate+'- '+text);
 }
 
 Array.prototype.remove = function(e) {
@@ -55,21 +55,35 @@ module.exports.consumeStream =  function(stream, params){
                         }
                     }
                     if(pin > 0){
-                       // log('sending '+data.text);
-                        for(var k = 0; k < subscribers.length; k++){
 
-                            subscribers[k].write(pin+'|'+tweetLength+'<');
-                            //commented because  of errors.
-                            // TODO find out what happened here
-                            //subscribers[k].pipe(subscribers[i]);
+                        for(var k = 0; k < subscribers.length; k++){
+                            if(subscribers[k].type){
+                                switch(subscribers[k].type){
+                                    case 1:{
+                                        if(params.filters1.indexOf('#'+ht) > -1){
+                                            log("1 "+ht);
+                                            subscribers[k].write(pin+'|'+tweetLength+'<');
+                                        }
+                                        break;
+                                    }
+                                    case 2:{
+                                        if(params.filters2.indexOf('#'+ht)>-1){
+                                            log("2 "+ht);
+                                            subscribers[k].write(pin+'|'+tweetLength+'<');
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
             }catch(err){
-                log("error "+err );
+                log('Error '+err.code);
             }
         }
+
     });
 
     stream.on('error', function(e){
