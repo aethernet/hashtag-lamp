@@ -22,17 +22,15 @@ params.pins = pins;
 
 // var server = dgram.createSocket('udp4');
 
-
-
 var subscribers = [];
 var twit = twitterModule.twit;
 
 var onConnect = function(connex){
     connex.on('listening', function(){
-        console.log('listening on '+PORT);
+        log('listening on '+PORT);
     });
     connex.on('connection', function(){
-        console.log('client connected');
+        log('client connected');
         twitterModule.addSubscriber(connex);
         connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
         connex.write("The hashtags actually filtered are  : "+"\r\n");
@@ -40,12 +38,12 @@ var onConnect = function(connex){
             connex.write("\t"+filters[i]+"\r\n");
         }
         connex.pipe(connex);
-        console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
+        log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
 
     });
 
     connex.on('data', function(data){
-       console.log('data received '+data);
+       log('data received '+data);
     });
 
     connex.on('end', function(){
@@ -56,13 +54,13 @@ var onConnect = function(connex){
 
 var server = net.createServer(onConnect);
 server.listen(PORT, function(){
-    console.log('server created');
+    log('server created');
     twit.stream('statuses/filter',{'track': filters}, function(str){twitterModule.consumeStream(str, params)});
 });
 
 server.on('connection', function(connex){
 
-    console.log('client connected');
+    log('client connected');
     twitterModule.addSubscriber(connex);
     connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
     connex.write("The hashtags actually filtered are  : "+"\r\n");
@@ -70,13 +68,13 @@ server.on('connection', function(connex){
         connex.write("\t"+filters[i]+"\r\n");
     }
     connex.pipe(connex);
-    console.log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
+    log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
 
     /*
     connex.on('end', function(){
         twitterModule.removeSubscriber(connex);
         connex.end();
-        console.log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
+        log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
     });
     */
 });
@@ -84,7 +82,7 @@ server.on('connection', function(connex){
 server.on('error', function(e){
     switch(e.code){
         case 'EADDRINUSE':{
-            console.log('Address in use. Retrying...');
+            log('Address in use. Retrying...');
             setTimeout(function(){
                 server.close();
                 server.listen(PORT)
@@ -92,7 +90,7 @@ server.on('error', function(e){
             break;
         }
         case 'EHOSTUNREACH':{
-            console.log("Restarting server");
+            log("Restarting server");
             setTimeout(function(){
                 server.close();
                 server.listen(PORT);
@@ -100,7 +98,7 @@ server.on('error', function(e){
             break;
         }
         case 'ECONNRESET':{
-            console.log('Restarting server');
+            log(e.code+' ... Restarting server');
             setTimeout(function(){
                 server.close();
                 server.listen(PORT);
@@ -108,9 +106,20 @@ server.on('error', function(e){
             break;
         }
         default :{
-            console.log('Error '+ e.code);
+            log('Error '+ e.code);
+            setTimeout(function(){
+                server.close();
+                server.listen(PORT);
+            }, 1000);
+            break;
         }
     }
 });
+
+
+function log(text){
+    var logDate = new Date().toString().replace(/G.*/,'').replace(/[a-zA-Z]*\ /,'');
+    console.log(logDate+'- '+text);
+}
 
 // server.maxConnections = 7000;

@@ -5,6 +5,17 @@ var twitter = require('ntwitter'),
 
 var subscribers  = [];
 
+function log(text){
+    var logDate = new Date().toString().replace(/G.*/,'').replace(/[a-zA-Z]*\ /,'');
+    console.log(logDate+'-'+text);
+}
+
+Array.prototype.remove = function(e) {
+    for (var i = 0; i < this.length; i++) {
+        if (e == this[i]) { return this.splice(i, 1); }
+    }
+};
+
 module.exports.twit = new twitter({
 	consumer_key: config.params.CONSUMER_KEY,
     consumer_secret: config.params.CONSUMER_SECRET,
@@ -24,13 +35,13 @@ module.exports.getSubscribersNumber =function(){
 }
 
 module.exports.consumeStream =  function(stream, params){
-    console.log('consume stream');
+    log('consume stream');
     var pins = params.pins;
     stream.on('data', function(data){
-        // console.log(data);
+        // log(data);
         if(data != 'undefined'){
             try{
-                //console.log("sending tweet "+data.text);
+                //log("sending tweet "+data.text);
                 var htlength = data.entities.hashtags.length;
                 var tweetLength  = String('0000'+data.text.length).slice(-3);
                 for(var i = 0; i< htlength; i++){
@@ -44,7 +55,7 @@ module.exports.consumeStream =  function(stream, params){
                         }
                     }
                     if(pin > 0){
-                       // console.log('sending '+data.text);
+                       // log('sending '+data.text);
                         for(var k = 0; k < subscribers.length; k++){
 
                             subscribers[k].write(pin+'|'+tweetLength+'<');
@@ -56,18 +67,18 @@ module.exports.consumeStream =  function(stream, params){
                 }
 
             }catch(err){
-                console.log("error "+err );
+                log("error "+err );
             }
         }
     });
 
     stream.on('error', function(e){
-        console.log('error '+ e);
+        log('error '+ e);
         socket.write('an error occured');
         socket.pipe(socket);
 
     });
     stream.on('end', function(){
-       console.log('Twitter stream API connection ended');
+       log('Twitter stream API connection ended');
     });
 };
