@@ -70,13 +70,13 @@ server.on('connection', function(connex){
     connex.pipe(connex);
     log('New subscriber: ' + twitterModule.getSubscribersNumber() + " total.\n");
 
-    /*
+
     connex.on('end', function(){
         twitterModule.removeSubscriber(connex);
         connex.end();
         log('Subscriber left: ' + twitterModule.getSubscribersNumber() + " total.\n");
     });
-    */
+
 });
 
 server.on('error', function(e){
