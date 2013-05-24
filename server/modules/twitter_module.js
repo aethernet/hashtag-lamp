@@ -61,14 +61,12 @@ module.exports.consumeStream =  function(stream, params){
                                 switch(subscribers[k].type){
                                     case 1:{
                                         if(params.filters1.indexOf('#'+ht) > -1){
-                                            log("1 "+ht);
                                             subscribers[k].write(pin+'|'+tweetLength+'<');
                                         }
                                         break;
                                     }
                                     case 2:{
                                         if(params.filters2.indexOf('#'+ht)>-1){
-                                            log("2 "+ht);
                                             subscribers[k].write(pin+'|'+tweetLength+'<');
                                         }
                                         break;

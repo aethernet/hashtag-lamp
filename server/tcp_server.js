@@ -42,7 +42,6 @@ server.listen(PORT, function(){
 });
 
 server.on('connection', function(connex){
-
     log('client connected');
     connex.write("--- Welcome to relab's Hahstag Lamps Server --- "+"\r\n");
     connex.write("The hashtags actually filtered are  : "+"\r\n");
@@ -61,14 +60,12 @@ server.on('connection', function(connex){
 
         if(typeof connex.type != 'number'){
             var test = parseInt( data.toString());
-            console.log(typeof test);
             switch(test){
                 case 1: log("setting connection type 1");connex.type = 1; break;
                 case 2: log("setting connection type 2");connex.type = 2; break;
                 default: connex.type = false;
             }
         }
-        log(connex.bound);
         if(connex.type && (typeof connex.bound == 'undefined' || connex.bound == false )){
             connex.bound = true;
             twitterModule.addSubscriber(connex);
@@ -80,40 +77,12 @@ server.on('connection', function(connex){
 });
 
 server.on('error', function(e){
-    switch(e.code){
-        case 'EADDRINUSE':{
-            log('Address in use. Retrying...');
-            setTimeout(function(){
-                server.close();
-                server.listen(PORT)
-            },1000);
-            break;
-        }
-        case 'EHOSTUNREACH':{
-            log("Restarting server");
-            setTimeout(function(){
-                server.close();
-                server.listen(PORT);
-            }, 1000);
-            break;
-        }
-        case 'ECONNRESET':{
-            log(e.code+' ... Restarting server');
-            setTimeout(function(){
-                server.close();
-                server.listen(PORT);
-            }, 1000);
-            break;
-        }
-        default :{
-            log('Error '+ e.code);
-            setTimeout(function(){
-                server.close();
-                server.listen(PORT);
-            }, 1000);
-            break;
-        }
-    }
+    log('Error '+ e.code);
+    log('Trying to restart server');
+    setTimeout(function(){
+        server.close();
+        server.listen(PORT);
+    }, 1000);
 });
 
 
