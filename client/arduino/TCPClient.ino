@@ -1,16 +1,17 @@
 /*
   modified Webclient from the Arduino Examples (by David A. Mellis)
-  to a simple TCP Client
-  
-  created 18.04.2012
-  by Laurid Meyer
-  
-  http://www.ahorndesign.com
- 
+  to a simple TCP Client (original code: http://www.ahorndesign.com )
+  Adapted by Paperpixel Std. for relab - ( http://www.relab.be )
+  Requires:
+    - Arduino Soft Timer library : https://code.google.com/p/arduino-softtimer/
+    - Arduino  PCIManager library: https://code.google.com/p/arduino-pcimanager/
+
+   Also Requires custom HashtagLampUtils library
+
  */
 
 /*
-    TODOS
+    TODO
     - Create an array with the pin numbers ordered (ex: [8,5,3] the pin number returned by server will be the index in the array)
     - Create timer for pin High duration (the delay stops the loop)
     - every n loops, test the connection + reconnect in case not connected anymore
@@ -22,20 +23,31 @@
 #include <SPI.h>
 #include <Ethernet.h>
 
-// Enter a MAC address for your controller below.
-// Newer Ethernet shields have a MAC address printed on a sticker on the shield
+/*
+ * CONNECTION
+ */
 byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress serverIP(188, 165, 193, 200); // IP Adress to our Server
 int serverPort=33333;
-
-// Initialize the Ethernet client library
-// with the IP address and port of the server 
-// that you want to connect to
 EthernetClient client;
+const int CONNECTION_CHECK = 10000;
+const unsigned long lastConnCheck = 0;
 
+/*
+ * CONTROLS
+ */
 const int button_pin = 7;
 int button_state = 0;
+const int ERROR_LED_PIN = *****;
 
+/*
+ * PINS & Timers
+ */
+
+ int BULB_PINS[] = {};
+ unsigned long bulbTimers = {0,0,0,0,0,0,0,0};
+
+// packages content
 String tweet_pin;
 String tweet_length;
 boolean is_after_pipe;
@@ -94,7 +106,7 @@ void loop()
 void processTweet(String tweet_pin, String tweet_length) {
   int timer_pin2 = millis();
   Serial.println(tweet_pin.toInt());
-  Serial.println(tweet_length);
+  Serial.println(tweet_length.toInt());
   switch(tweet_pin.toInt()){
     case 1:
     case 2:
