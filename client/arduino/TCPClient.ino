@@ -30,33 +30,38 @@ byte mac[] = {  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 IPAddress serverIP(188, 165, 193, 200); // IP Adress to our Server
 int serverPort=33333;
 EthernetClient client;
-const int CONNECTION_CHECK = 10000;
-const unsigned long lastConnCheck = 0;
+const int CONNECTION_CHECK_DELAY = 10000;
+unsigned long lastConnCheck = 0;
 
 /*
  * CONTROLS
  */
-const int button_pin = 7;
+const int button_pin = A0;
 int button_state = 0;
-const int ERROR_LED_PIN = *****;
+//const int ERROR_LED_PIN = *****;
 
 /*
  * PINS & Timers
  */
 
- int BULB_PINS[] = {};
- unsigned long bulbTimers = {0,0,0,0,0,0,0,0};
+int BULB_PINS[] = {3,4, 5, 6, 7, 8, 9, 10};
+int HASHTAG_SET = 1;
+//unsigned long bulbTimers = {0,0,0,0,0,0,0,0};
 
 // packages content
-String tweet_pin;
+String hashtag_num;
 String tweet_length;
 boolean is_after_pipe;
 
 void setup() {
   pinMode(button_pin, INPUT);
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(5, OUTPUT);
+  int i;
+  for(i = 0; i < sizeof(BULB_PINS); i++) {
+    pinMode(BULB_PINS[i], OUTPUT);
+  }
+  //pinMode(2, OUTPUT);
+  //pinMode(3, OUTPUT);
+  //pinMode(5, OUTPUT);
   
   // start the serial for debugging
   Serial.begin(9600);
@@ -81,55 +86,48 @@ void loop()
   // from the server, read them and print them:
   if (client.available()) {
     char c = client.read();
-    
+
+    if(c == '~') { // choose wich hashtag set is wanted (1 or 2)
+        client.print(HASHTAG_SET);
+        Serial.print("Hashtag set ");
+        Serial.println(HASHTAG_SET);
+    }
+
+    // check buffer for hashtags
     if(c != '|' && is_after_pipe == false) {
-      tweet_pin += c;
+      hashtag_num += c; // hashtag number
     } else if(c != '<' && is_after_pipe == true) {
-      tweet_length += c;
+      tweet_length += c; // tweet length
     } else if(c == '|') {
       is_after_pipe = true;
     } else if(c == '<') {
-      processTweet(tweet_pin, tweet_length);
-      tweet_pin = "";
+      processTweet(hashtag_num, tweet_length); // end of message
+      hashtag_num = "";
       tweet_length = "";
       is_after_pipe = false;
     }
   }
 
   if(button_state == HIGH) {
-    connectToServer();
-    delay(1000);
+    //connectToServer();
+    //delay(1000);
   }
+
+  checkConnection();
 }
 
 
-void processTweet(String tweet_pin, String tweet_length) {
-  int timer_pin2 = millis();
-  Serial.println(tweet_pin.toInt());
-  Serial.println(tweet_length.toInt());
-  switch(tweet_pin.toInt()){
-    case 1:
-    case 2:
-    case 3:{
-      digitalWrite(2, HIGH);
-      delay(500);
-      digitalWrite(2, LOW);
-      break;     
-    }
-    case 4: case 5: case 6:{
-     digitalWrite(3, HIGH);
-     delay(500);
-      digitalWrite(3, LOW);
-     break; 
-    }
-    case 7: case 8: case 9: case 10:{
-       digitalWrite(5, HIGH);
-      delay(500);
-      digitalWrite(5, LOW);
-     break; 
-    } 
-  }
-    
+void processTweet(String hashtag_num_str, String tweet_length_str) {
+    int hashtag_num = hashtag_num_str.toInt();
+    int tweet_length = tweet_length_str.toInt();
+    int bulb_pin = BULB_PINS[hashtag_num-1];
+
+    Serial.print("lighting up bulb on pin #");
+    Serial.println(bulb_pin);
+
+    digitalWrite(bulb_pin, HIGH);
+    delay(500);
+    digitalWrite(bulb_pin, LOW);
 }
 
 
@@ -155,20 +153,16 @@ void connectToServer() {
 }
 
 
- String split(String data, char separator, int index)
-{
-  int found = 0;
-  int strIndex[] = {0, -1};
-  int maxIndex = data.length()-1;
-
-  for(int i=0; i<=maxIndex && found<=index; i++){
-    if(data.charAt(i)==separator || i==maxIndex){
-        found++;
-        strIndex[0] = strIndex[1]+1;
-        strIndex[1] = (i == maxIndex) ? i+1 : i;
+/**
+* checks connection every n milliseconds (see CONNECTION_CHECK_DELAY)
+* and tries to reconnect if disconnected
+**/
+void checkConnection() {
+    if(millis() > (lastConnCheck + CONNECTION_CHECK_DELAY)) {
+        if (!client.connected()) {
+            Serial.println("disconnected.");
+            connectToServer();
+            lastConnCheck = millis();
+        }
     }
-  }
-
-  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
-
